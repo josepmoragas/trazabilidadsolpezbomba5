@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solar Pez Bomba v4 · Castelldefels</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.9.0/suncalc.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap');
+:root{
+  --or:#FF6B00;--or2:#FFB347;--or3:#FFE066;
+  --bl:#B8E0FF;--sh:#1A2A3A;
+  --bg:#0D1B2A;--sf:#142233;--sf2:#1C2F44;
+  --tx:#E8F4FD;--mu:#6B8CAE;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Space Mono',monospace;background:var(--bg);color:var(--tx);min-height:100vh}
+
+/* HEADER */
+header{padding:1rem 1.6rem .8rem;border-bottom:1px solid rgba(255,107,0,.2);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+h1{font-family:'Syne',sans-serif;font-size:clamp(1.1rem,2.5vw,1.6rem);font-weight:800;letter-spacing:-.02em}
+h1 span{color:var(--or)}
+.hmeta{font-size:.65rem;color:var(--mu);margin-top:.2rem;letter-spacing:.04em}
+.badge{display:flex;align-items:center;gap:.5rem;background:rgba(255,107,0,.1);border:1px solid rgba(255,107,0,.25);border-radius:8px;padding:.4rem .8rem;font-size:.7rem;color:var(--or2)}
+
+/* CONTROLS BAR */
+.controls{display:flex;gap:.7rem;padding:.7rem 1.6rem;background:var(--sf);border-bottom:1px solid rgba(255,107,0,.1);flex-wrap:wrap;align-items:flex-end}
+.cg{display:flex;flex-direction:column;gap:.2rem}
+.cg label{font-size:.58rem;color:var(--mu);letter-spacing:.1em;text-transform:uppercase}
+.cg input,.cg select{background:var(--sf2);border:1px solid rgba(255,107,0,.2);color:var(--tx);padding:.38rem .6rem;border-radius:6px;font-family:'Space Mono',monospace;font-size:.75rem;outline:none}
+.cg input:focus,.cg select:focus{border-color:var(--or)}
+.btn{background:var(--or);color:#fff;border:none;padding:.42rem 1rem;border-radius:6px;font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;cursor:pointer;transition:.15s;white-space:nowrap}
+.btn:hover{background:#e05a00;transform:translateY(-1px)}
+.btn.sec{background:var(--sf2);color:var(--mu);border:1px solid rgba(255,107,0,.2)}
+.btn.sec:hover{background:var(--sf);color:var(--or2)}
+.btn.act{background:rgba(255,107,0,.2);color:var(--or2);border:1px solid var(--or)}
+
+/* VIEW MODE TABS */
+.view-tabs{display:flex;gap:0;padding:.6rem 1.6rem;background:var(--bg);border-bottom:1px solid rgba(255,107,0,.1)}
+.vtab{background:transparent;border:1px solid rgba(255,107,0,.2);color:var(--mu);padding:.4rem 1.2rem;font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;transition:.15s;letter-spacing:.03em}
+.vtab:first-child{border-radius:8px 0 0 8px}
+.vtab:last-child{border-radius:0 8px 8px 0;border-left:none}
+.vtab.active{background:var(--or);border-color:var(--or);color:#fff}
+
+/* MAIN MAP SECTION */
+.map-section{padding:1rem 1.6rem;background:var(--bg)}
+.map-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;flex-wrap:wrap;gap:.5rem}
+.map-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem}
+.map-controls{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.slw{display:flex;align-items:center;gap:.5rem}
+.slw label{font-size:.65rem;color:var(--mu);white-space:nowrap}
+input[type=range]{-webkit-appearance:none;height:4px;background:var(--sf2);border-radius:2px;outline:none;width:120px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--or);cursor:pointer}
+.td{font-family:'Syne',sans-serif;font-weight:700;color:var(--or2);font-size:.85rem;min-width:40px}
+#shCanvas{width:100%;border-radius:10px;background:var(--sf2);cursor:crosshair;display:block}
+.shadow-info{margin-top:.5rem;display:flex;gap:1.2rem;align-items:center;flex-wrap:wrap}
+.sinfo-txt{font-size:.7rem;color:var(--mu)}
+.sinfo-txt strong{color:var(--or2)}
+.leg{display:flex;gap:.8rem;flex-wrap:wrap}
+.li{display:flex;align-items:center;gap:.3rem;font-size:.62rem;color:var(--mu)}
+.ld{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+/* POINT MODE PANEL */
+#pointPanel{display:none;background:var(--sf);border:1px solid rgba(255,107,0,.2);border-radius:10px;padding:.9rem 1.2rem;margin-top:.8rem}
+.point-list{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem;min-height:32px}
+.point-tag{display:flex;align-items:center;gap:.4rem;background:var(--sf2);border:1px solid rgba(255,107,0,.2);border-radius:20px;padding:.25rem .65rem;font-size:.68rem;color:var(--tx)}
+.point-tag .pt-btn{background:none;border:none;color:var(--mu);cursor:pointer;padding:0;font-size:.8rem;line-height:1}
+.point-tag .pt-btn:hover{color:var(--or)}
+.point-tag.selected{border-color:var(--or);background:rgba(255,107,0,.12);color:var(--or2)}
+
+/* POINT CHART POPUP */
+#pointChartCard{display:none;background:var(--sf);border:1px solid rgba(255,107,0,.2);border-radius:10px;padding:1rem 1.2rem;margin-top:.8rem}
+#pointChartTitle{font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;margin-bottom:.6rem}
+#pointChartCanvas{width:100%;border-radius:8px;background:var(--sf2)}
+
+/* BOTTOM GRID */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;padding:1rem 1.6rem 1.6rem}
+@media(max-width:780px){.grid{grid-template-columns:1fr}.controls,.view-tabs,.map-section,.grid{padding-left:.8rem;padding-right:.8rem}}
+.card{background:var(--sf);border:1px solid rgba(255,107,0,.1);border-radius:10px;overflow:hidden}
+.card-h{padding:.8rem 1.1rem .6rem;border-bottom:1px solid rgba(255,107,0,.08);display:flex;align-items:center;justify-content:space-between}
+.ct{font-family:'Syne',sans-serif;font-weight:700;font-size:.83rem}
+.cs{font-size:.62rem;color:var(--mu);margin-top:.1rem}
+
+/* HEATMAP */
+.hw{padding:.7rem 1.1rem 1rem;overflow-x:auto}
+.hg{display:grid;gap:2px;min-width:440px}
+.hl{font-size:.54rem;color:var(--mu);display:flex;align-items:center;justify-content:flex-end;padding-right:5px}
+.hc{height:16px;border-radius:3px;cursor:default;transition:transform .1s}
+.hc:hover{transform:scale(1.35);z-index:10}
+.hhl{font-size:.54rem;color:var(--mu);text-align:center;padding-top:3px}
+
+/* STATS */
+.sg{display:grid;grid-template-columns:repeat(3,1fr)}
+.si{padding:.9rem .7rem;text-align:center;border-right:1px solid rgba(255,107,0,.08)}
+.si:last-child{border-right:none}
+.sv{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:var(--or2);line-height:1}
+.sl{font-size:.58rem;color:var(--mu);margin-top:.3rem;letter-spacing:.04em;text-transform:uppercase}
+
+/* HOUR LIST */
+.hl2{padding:.4rem 1.1rem 1rem;max-height:260px;overflow-y:auto}
+.hl2::-webkit-scrollbar{width:3px}
+.hl2::-webkit-scrollbar-thumb{background:rgba(255,107,0,.3);border-radius:2px}
+.hr{display:grid;grid-template-columns:50px 1fr 55px 55px;gap:.4rem;align-items:center;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.7rem}
+.ht{color:var(--mu)}
+.hbw{height:6px;background:var(--sf2);border-radius:3px;overflow:hidden}
+.hb{height:100%;border-radius:3px}
+.ha,.haz{text-align:right;color:var(--mu);font-size:.65rem}
+
+/* ZONE COMPARISON */
+.zt{width:100%;border-collapse:collapse;font-size:.7rem}
+.zt th{background:var(--sf2);color:var(--mu);padding:.35rem .5rem;text-align:center;font-weight:400;font-size:.58rem;text-transform:uppercase}
+.zt td{padding:.35rem .5rem;text-align:center;border-bottom:1px solid rgba(255,255,255,.04)}
+.zt tr:last-child td{border-bottom:none}
+.zt td:first-child{color:var(--or2);font-weight:700;font-family:'Syne',sans-serif;text-align:left}
+
+.sb{padding:.4rem 1.6rem;font-size:.62rem;color:var(--mu);border-top:1px solid rgba(255,107,0,.08)}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Solar <span>Pez Bomba</span></h1>
+    <div class="hmeta">41.2657°N 1.9855°E · Carrer 13, 2 · Castelldefels · OSM 146 edificios · v4</div>
+  </div>
+  <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap">
+    <div class="badge">☀️ SunCalc + OSM Real</div>
+    <div class="cg"><label>Fecha</label><input type="date" id="dateInput"></div>
+    <div class="cg"><label>Toldo</label>
+      <select id="awningType">
+        <option value="none">Sin toldo</option>
+        <option value="full">Toldo 100%</option>
+        <option value="shade50">Malla 50%</option>
+        <option value="shade30">Malla 30%</option>
+        <option value="pergola">Pérgola</option>
+        <option value="retract">Toldo 10-16h</option>
+      </select>
+    </div>
+    <button class="btn" onclick="runAll()">▶ Analizar</button>
+  </div>
+</header>
+
+<!-- VIEW MODE TABS -->
+<div class="view-tabs">
+  <button class="vtab active" id="tabZones" onclick="setViewMode('zones')">⬛ Vista por Zonas</button>
+  <button class="vtab" id="tabPoints" onclick="setViewMode('points')">📍 Vista por Puntos (mesas)</button>
+</div>
+
+<!-- MAIN MAP -->
+<div class="map-section">
+  <div class="map-header">
+    <div>
+      <div class="map-title" id="mapTitle">Mapa de Sombras · Vista Cenital · Zonas de Terraza</div>
+      <div style="font-size:.62rem;color:var(--mu)" id="mapSubtitle">Norte arriba · Escala real · Sombras en tiempo real</div>
+    </div>
+    <div class="map-controls">
+      <div class="slw">
+        <label>Hora:</label>
+        <input type="range" id="hourSlider" min="6" max="21" step="0.5" value="12">
+        <span class="td" id="timeDisplay">12:00</span>
+      </div>
+      <button id="satToggleBtn" class="btn act" onclick="toggleSat()" style="font-size:.7rem;padding:.35rem .75rem">🛰 Satélite ON</button>
+      <div id="shadowInfoEl" style="font-size:.68rem;color:var(--mu)">—</div>
+    </div>
+  </div>
+  <canvas id="shCanvas" width="1100" height="460"></canvas>
+  <div class="shadow-info">
+    <div class="leg" id="legendEl">
+      <div class="li"><div class="ld" style="background:#1e3a88"></div>Edificio OSM</div>
+      <div class="li"><div class="ld" style="background:rgba(0,0,0,.5);border:1px solid #333"></div>Sombra</div>
+      <div class="li"><div class="ld" style="background:rgba(255,224,102,.45);border:1px solid #FFE066"></div>Sol</div>
+      <div class="li"><div class="ld" style="background:rgba(255,68,68,.4);border:1px solid #ff4444"></div>Sombra</div>
+      <div class="li"><div class="ld" style="background:rgba(74,222,128,.35);border:1px solid #4ade80"></div>Parcial</div>
+      <div class="li"><div class="ld" style="background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.4)"></div>Terraza</div>
+    </div>
+    <div class="leg" id="pointLegendEl" style="display:none">
+      <div class="li"><div class="ld" style="background:#FF6B00;border-radius:50%"></div>Mesa colocada</div>
+      <div class="li" style="font-style:italic;color:var(--mu)">Haz clic en la terraza para colocar una mesa</div>
+    </div>
+  </div>
+</div>
+
+<!-- POINT MODE PANEL -->
+<div style="padding:0 1.6rem" id="pointPanelWrap">
+<div id="pointPanel">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem">📍 Mesas colocadas</div>
+      <div style="font-size:.62rem;color:var(--mu);margin-top:.15rem">Haz clic en la terraza para añadir una mesa. Selecciona una para ver su análisis solar.</div>
+    </div>
+    <button class="btn sec" onclick="clearPoints()" style="font-size:.7rem;padding:.3rem .7rem">🗑 Borrar todo</button>
+  </div>
+  <div class="point-list" id="pointList"><span style="font-size:.68rem;color:var(--mu);padding:.3rem">Sin mesas colocadas</span></div>
+</div>
+</div>
+
+<!-- POINT CHART POPUP -->
+<div style="padding:0 1.6rem" id="pointChartWrap">
+<div id="pointChartCard">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
+    <div id="pointChartTitle">—</div>
+    <button class="btn sec" onclick="closePointChart()" style="font-size:.7rem;padding:.3rem .7rem">✕ Cerrar</button>
+  </div>
+  <canvas id="pointChartCanvas" width="900" height="200"></canvas>
+  <div id="pointChartInfo" style="margin-top:.6rem;font-size:.7rem;color:var(--mu)"></div>
+</div>
+</div>
+
+<!-- BOTTOM PANELS (shown in zones mode) -->
+<div class="grid" id="bottomGrid">
+
+  <!-- HEATMAP -->
+  <div class="card" style="grid-column:1/-1">
+    <div class="card-h">
+      <div><div class="ct">Mapa de Calor Solar</div>
+      <div class="cs" id="heatSubtitle">Verde oscuro = sombra · Naranja = sol directo · Cada celda = 1 hora</div></div>
+      <select id="viewMode" style="background:var(--sf2);border:1px solid rgba(255,107,0,.2);color:var(--tx);padding:.3rem .5rem;border-radius:6px;font-size:.7rem;font-family:'Space Mono',monospace" onchange="runAll()">
+        <option value="day">Día</option>
+        <option value="week">Semana</option>
+        <option value="month">Mes</option>
+      </select>
+    </div>
+    <div class="hw"><div id="heatmap" class="hg"></div></div>
+  </div>
+
+  <!-- ARC -->
+  <div class="card">
+    <div class="card-h">
+      <div><div class="ct">Arco Solar del Día</div>
+      <div class="cs" id="arcDate">—</div></div>
+    </div>
+    <div style="padding:.7rem 1.1rem 1rem"><canvas id="arcCanvas" width="540" height="190"></canvas></div>
+  </div>
+
+  <!-- STATS + HOUR LIST -->
+  <div class="card">
+    <div class="card-h">
+      <div><div class="ct">Resumen Diario</div>
+      <div class="cs" id="statsDate">—</div></div>
+      <select id="activeZone" style="background:var(--sf2);border:1px solid rgba(255,107,0,.2);color:var(--tx);padding:.3rem .5rem;border-radius:6px;font-size:.7rem;font-family:'Space Mono',monospace" onchange="runAll()">
+        <option value="0">Centro</option>
+        <option value="1">Zona A (norte)</option>
+        <option value="2">Zona B (noroeste)</option>
+        <option value="3">Zona C (norte-centro)</option>
+        <option value="4">Zona D (sur-centro)</option>
+        <option value="5">Zona E (este)</option>
+        <option value="6">Zona F (sur)</option>
+      </select>
+    </div>
+    <div class="sg">
+      <div class="si"><div class="sv" id="s1">—</div><div class="sl">Horas sol</div></div>
+      <div class="si"><div class="sv" id="s2">—</div><div class="sl">Alt. máx.</div></div>
+      <div class="si"><div class="sv" id="s3">—</div><div class="sl">Salida·Puesta</div></div>
+    </div>
+    <div class="hl2" id="hourList"></div>
+  </div>
+
+  <!-- ZONE TABLE -->
+  <div class="card" style="grid-column:1/-1">
+    <div class="card-h">
+      <div><div class="ct">Comparativa de Zonas</div>
+      <div class="cs" id="zcDate">—</div></div>
+      <button class="btn sec" style="font-size:.7rem;padding:.32rem .7rem" onclick="runZoneComparison()">⊞ Actualizar</button>
+    </div>
+    <div style="padding:.7rem 1.1rem 1rem;overflow-x:auto">
+      <table class="zt" id="zoneTable">
+        <thead><tr><th>Zona</th><th>07h</th><th>08h</th><th>09h</th><th>10h</th><th>11h</th><th>12h</th><th>13h</th><th>14h</th><th>15h</th><th>16h</th><th>17h</th><th>18h</th><th>19h</th><th>20h</th><th>TOTAL</th></tr></thead>
+        <tbody id="zoneTbody"><tr><td colspan="16" style="color:var(--mu);padding:1rem;text-align:center">Pulsa Analizar</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="sb" id="statusBar">Listo · Selecciona fecha y pulsa Analizar</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// DATOS BASE
+// ══════════════════════════════════════════════════
+const LAT=41.26567347476931, LNG=1.985475578118266;
+
+// Terraza real — polígono en L desde coordenadas exactas del usuario
+// Puntos perimetrales (en orden):
+// NW-norte, NE-norte, NE-sur, SE, SW-sur, SW-norte, inflexion
+const TERRAZA_POLY=[
+  {lat:41.265784244790396, lng:1.985194644285073},   // 0: NW-N
+  {lat:41.265789039921145, lng:1.9852919301867256},  // 1: NE-N
+  {lat:41.265789039921145, lng:1.9852919301867256},  // placeholder — corregido abajo
+  {lat:41.265693, lng:1.985334991159588},            // inflexión este
+  {lat:41.26564878220184, lng:1.985334991159588},    // SE
+  {lat:41.26564398706082, lng:1.9851826829037227},   // SW
+];
+// Polígono real en forma de L (2 rectángulos unidos)
+// Bloque norte (zona bajo balcón): lat 41.26569..41.26579, lng 1.98519..1.98529
+// Bloque sur: lat 41.26565..41.26569, lng 1.98518..1.98533
+const TERR_POLY=[
+  {lat:41.265784,lng:1.985194},
+  {lat:41.265790,lng:1.985292},
+  {lat:41.265693,lng:1.985286},
+  {lat:41.265693,lng:1.985335},
+  {lat:41.265649,lng:1.985335},
+  {lat:41.265644,lng:1.985183},
+];
+
+// ZONAS — divididas de forma coherente sin solapamiento
+// La terraza tiene forma de L. La dividimos en 6 zonas lógicas:
+// Norte (bajo balcón): A, C  |  Sur-centro: B, D  |  Este: E, F
+const ZONES=[
+  {id:0, lat:LAT, lng:LNG, label:'Centro'},
+  // Norte-Oeste (bajo balcón izquierda)
+  {id:1, lat:41.265773, lng:1.985208, label:'A',desc:'Norte-Oeste'},
+  // Norte-Centro (bajo balcón centro)
+  {id:2, lat:41.265773, lng:1.985260, label:'B',desc:'Norte-Centro'},
+  // Sur-Oeste
+  {id:3, lat:41.265658, lng:1.985208, label:'C',desc:'Sur-Oeste'},
+  // Sur-Centro
+  {id:4, lat:41.265658, lng:1.985260, label:'D',desc:'Sur-Centro'},
+  // Sur-Este (extensión)
+  {id:5, lat:41.265668, lng:1.985312, label:'E',desc:'Sur-Este'},
+  // Norte-Este
+  {id:6, lat:41.265778, lng:1.985285, label:'F',desc:'Norte-Este'},
+];
+
+// Polígonos de zonas sin solapamiento
+// Límites del eje: lat [41.265644, 41.265790], lng [1.985183, 1.985335]
+const ZONE_POLYS=[
+  // A: Norte-Oeste (bajo balcón)
+  [{lat:41.265762,lng:1.985183},{lat:41.265790,lng:1.985183},{lat:41.265790,lng:1.985237},{lat:41.265762,lng:1.985237}],
+  // B: Norte-Centro (bajo balcón)
+  [{lat:41.265762,lng:1.985237},{lat:41.265790,lng:1.985237},{lat:41.265790,lng:1.985292},{lat:41.265762,lng:1.985292}],
+  // C: Sur-Oeste
+  [{lat:41.265644,lng:1.985183},{lat:41.265762,lng:1.985183},{lat:41.265762,lng:1.985237},{lat:41.265644,lng:1.985237}],
+  // D: Sur-Centro
+  [{lat:41.265644,lng:1.985237},{lat:41.265762,lng:1.985237},{lat:41.265762,lng:1.985292},{lat:41.265644,lng:1.985292}],
+  // E: Sur-Este (extensión sur de la L)
+  [{lat:41.265644,lng:1.985292},{lat:41.265693,lng:1.985292},{lat:41.265693,lng:1.985335},{lat:41.265644,lng:1.985335}],
+  // F: Norte-Este (esquina NE)
+  [{lat:41.265762,lng:1.985292},{lat:41.265790,lng:1.985292},{lat:41.265790,lng:1.985335},{lat:41.265762,lng:1.985335}],
+];
+
+// Zonas bajo balcón
+const UNDER_BALCONY=[1,2,6]; // A, B, F están en el bloque norte
+
+// Puntos/mesas colocados por el usuario
+let userPoints=[];
+let selectedPointIdx=-1;
+let viewMode='zones';
+let placingMode=false;
+
+// ══════════════════════════════════════════════════
+// BUILDINGS DATA
+// ══════════════════════════════════════════════════
+const BLD_RAW=[{"h":7.0,"c":[[1.982982,41.266238],[1.983114,41.266219],[1.983114,41.266249],[1.98313,41.266249],[1.983127,41.266446],[1.982992,41.266444],[1.982994,41.266344],[1.982977,41.266348],[1.982982,41.266238]]},{"h":7.0,"c":[[1.983654,41.265171],[1.983653,41.265125],[1.984023,41.265133],[1.984023,41.265173],[1.983654,41.265171]]},{"h":3.5,"c":[[1.986846,41.267924],[1.986907,41.267947],[1.986894,41.267968],[1.986902,41.26797],[1.986907,41.267979],[1.986868,41.268031],[1.986817,41.26801],[1.986807,41.268023],[1.986789,41.268006],[1.986846,41.267924]]},{"h":7.0,"c":[[1.987477,41.267409],[1.987434,41.26743],[1.987437,41.267435],[1.987401,41.267454],[1.987398,41.267449],[1.987352,41.267473],[1.987308,41.267423],[1.987342,41.267364],[1.987313,41.267358],[1.987326,41.267332],[1.987329,41.267325],[1.987345,41.267339],[1.987407,41.267306],[1.987423,41.267324],[1.987436,41.267318],[1.987468,41.267351],[1.987437,41.267366],[1.987477,41.267409]]},{"h":7.0,"c":[[1.98544,41.26752],[1.985357,41.267581],[1.98533,41.26756],[1.985317,41.26757],[1.985278,41.267538],[1.985287,41.26753],[1.985246,41.267497],[1.985279,41.267474],[1.985301,41.267489],[1.985349,41.267452],[1.985332,41.267437],[1.985353,41.26742],[1.985376,41.267437],[1.985395,41.267424],[1.985426,41.267448],[1.985453,41.267426],[1.985531,41.267428],[1.985529,41.267482],[1.985431,41.267482],[1.985423,41.267476],[1.985402,41.267492],[1.98544,41.26752]]},{"h":7.0,"c":[[1.984175,41.267055],[1.984183,41.267055],[1.984182,41.267089],[1.984157,41.26709],[1.984157,41.267143],[1.984062,41.267142],[1.984062,41.267152],[1.983983,41.26715],[1.983983,41.267143],[1.983829,41.267143],[1.983827,41.267162],[1.983788,41.267162],[1.983789,41.267143],[1.98371,41.267142],[1.983709,41.267106],[1.9837,41.267106],[1.983701,41.26708],[1.983732,41.26708],[1.983734,41.267046],[1.983697,41.267046],[1.983698,41.267016],[1.983647,41.267026],[1.983648,41.266996],[1.983658,41.266995],[1.983659,41.266943],[1.983747,41.266944],[1.983747,41.266924],[1.983967,41.266924],[1.983968,41.266987],[1.984173,41.266988],[1.984174,41.267013],[1.984197,41.267013],[1.984197,41.266987],[1.984234,41.266987],[1.984234,41.266961],[1.984348,41.266961],[1.984349,41.267048],[1.984366,41.267049],[1.984365,41.267097],[1.984274,41.267096],[1.984272,41.267107],[1.984197,41.267104],[1.984198,41.267034],[1.984175,41.267034],[1.984175,41.267055]]},{"h":7.0,"c":[[1.982369,41.266836],[1.982371,41.266677],[1.982492,41.266676],[1.982492,41.266713],[1.982523,41.266713],[1.982523,41.266744],[1.982509,41.266743],[1.982508,41.266778],[1.982523,41.266777],[1.982523,41.266814],[1.98249,41.266814],[1.98249,41.266835],[1.982369,41.266836]]},{"h":7.0,"c":[[1.982355,41.266319],[1.982514,41.26632],[1.982513,41.266327],[1.982547,41.266329],[1.982545,41.266444],[1.9824,41.266444],[1.9824,41.26638],[1.982355,41.266379],[1.982355,41.266319]]},{"h":7.0,"c":[[1.98238,41.265895],[1.982494,41.265896],[1.982493,41.265949],[1.982584,41.26595],[1.982583,41.266006],[1.982378,41.266006],[1.98238,41.265895]]},{"h":7.0,"c":[[1.982339,41.265649],[1.98234,41.26559],[1.982474,41.265593],[1.982473,41.265651],[1.982339,41.265649]]},{"h":7.0,"c":[[1.982886,41.266614],[1.982765,41.266614],[1.982765,41.266381],[1.982885,41.266381],[1.982886,41.266614]]},{"h":7.0,"c":[[1.982765,41.266614],[1.982886,41.266614],[1.982888,41.266801],[1.982765,41.266801],[1.982765,41.266614]]},{"h":10.5,"c":[[1.983211,41.266273],[1.983323,41.266274],[1.983326,41.26647],[1.983214,41.26647],[1.983211,41.266273]]},{"h":10.5,"c":[[1.983311,41.267197],[1.983014,41.267201],[1.983013,41.267105],[1.983311,41.267101],[1.983311,41.267197]]},{"h":7.0,"c":[[1.986512,41.265172],[1.986511,41.265114],[1.986865,41.265109],[1.986866,41.265168],[1.986512,41.265172]]},{"h":7.0,"c":[[1.983611,41.265],[1.983615,41.264952],[1.983841,41.264963],[1.983837,41.265011],[1.983611,41.265]]},{"h":14.0,"c":[[1.983994,41.266004],[1.984063,41.266001],[1.984063,41.26601],[1.984142,41.266011],[1.984143,41.266072],[1.984127,41.26607],[1.984126,41.266089],[1.984138,41.26609],[1.984141,41.266199],[1.984079,41.266198],[1.984078,41.266188],[1.98405,41.266188],[1.98405,41.26622],[1.984138,41.26622],[1.98414,41.266277],[1.98406,41.266276],[1.984059,41.266284],[1.983996,41.266285],[1.983998,41.266299],[1.984009,41.266298],[1.984025,41.266359],[1.983949,41.266369],[1.983947,41.26636],[1.98392,41.266363],[1.983922,41.266373],[1.983777,41.266392],[1.983775,41.266381],[1.983749,41.266384],[1.983752,41.266395],[1.983679,41.266405],[1.983663,41.266346],[1.983653,41.266348],[1.983641,41.266299],[1.983699,41.26629],[1.983698,41.266285],[1.983787,41.266273],[1.983789,41.266279],[1.983871,41.266267],[1.983869,41.266262],[1.983958,41.26625],[1.983959,41.266255],[1.983988,41.26625],[1.983988,41.266175],[1.983995,41.266175],[1.983994,41.266111],[1.983988,41.266112],[1.983988,41.266047],[1.983994,41.266046],[1.983994,41.266004]]},{"h":10.5,"c":[[1.985694,41.265653],[1.985692,41.265761],[1.98555,41.265762],[1.98555,41.265775],[1.985272,41.26578],[1.985269,41.265671],[1.985535,41.265669],[1.985533,41.26565],[1.985694,41.265653]]},{"h":10.5,"c":[[1.985769,41.265619],[1.985753,41.265474],[1.986113,41.265471],[1.986118,41.265578],[1.985903,41.265582],[1.985902,41.265619],[1.985769,41.265619]]},{"h":10.5,"c":[[1.985875,41.265754],[1.98589,41.265873],[1.986119,41.265872],[1.986121,41.265967],[1.985857,41.265969],[1.985857,41.265923],[1.985785,41.265923],[1.985762,41.265752],[1.985875,41.265754]]},{"h":14.0,"c":[[1.986344,41.265768],[1.986347,41.265464],[1.98661,41.265463],[1.986607,41.265602],[1.986549,41.265601],[1.986551,41.265557],[1.986465,41.265556],[1.986462,41.265586],[1.986475,41.265586],[1.986473,41.265768],[1.986344,41.265768]]},{"h":10.5,"c":[[1.983953,41.266644],[1.983952,41.266492],[1.984139,41.266492],[1.98414,41.266643],[1.983953,41.266644]]},{"h":7.0,"c":[[1.984288,41.266588],[1.984287,41.266491],[1.984358,41.266491],[1.984359,41.266444],[1.984286,41.266444],[1.984284,41.266345],[1.984517,41.266341],[1.984518,41.266442],[1.984428,41.266443],[1.984428,41.266491],[1.984521,41.266489],[1.984521,41.266588],[1.984288,41.266588]]},{"h":10.5,"c":[[1.983594,41.266648],[1.98362,41.266645],[1.983621,41.266652],[1.983823,41.266623],[1.983829,41.266654],[1.983834,41.266675],[1.983833,41.266726],[1.983771,41.266737],[1.983764,41.266717],[1.98367,41.266732],[1.983674,41.26675],[1.9836,41.266761],[1.983594,41.266648]]},{"h":10.5,"c":[[1.983605,41.266595],[1.983605,41.266484],[1.983717,41.266463],[1.983723,41.26648],[1.983748,41.266475],[1.983745,41.266463],[1.983823,41.266448],[1.98385,41.266526],[1.983768,41.26654],[1.983777,41.266565],[1.983605,41.266595]]},{"h":7.0,"c":[[1.987158,41.265612],[1.987161,41.265468],[1.987247,41.265469],[1.987247,41.265477],[1.987283,41.265475],[1.987283,41.265467],[1.987362,41.265467],[1.987361,41.265567],[1.987241,41.265568],[1.98724,41.265613],[1.987158,41.265612]]},{"h":7.0,"c":[[1.987475,41.265515],[1.987605,41.265514],[1.987604,41.265658],[1.987529,41.265656],[1.987526,41.265665],[1.987517,41.265672],[1.987506,41.265675],[1.987497,41.265675],[1.987489,41.265671],[1.987483,41.265664],[1.98748,41.265656],[1.987473,41.265655],[1.987475,41.265515]]},{"h":7.0,"c":[[1.985561,41.266941],[1.985564,41.266839],[1.985642,41.266839],[1.985642,41.266832],[1.985742,41.266833],[1.98574,41.266942],[1.985561,41.266941]]},{"h":7.0,"c":[[1.985423,41.266848],[1.985423,41.266908],[1.985438,41.266909],[1.985439,41.26697],[1.985353,41.266971],[1.985355,41.267014],[1.985285,41.267015],[1.985289,41.26697],[1.985272,41.26697],[1.985269,41.266948],[1.985262,41.266948],[1.985261,41.266888],[1.985352,41.266888],[1.985352,41.26685],[1.985423,41.266848]]},{"h":7.0,"c":[[1.985993,41.266787],[1.986145,41.266786],[1.986148,41.266864],[1.985994,41.266865],[1.985993,41.266787]]},{"h":7.0,"c":[[1.985895,41.266959],[1.986085,41.266961],[1.986084,41.267039],[1.986042,41.267038],[1.986042,41.267058],[1.986005,41.267057],[1.986005,41.267039],[1.985894,41.267038],[1.985895,41.266959]]},{"h":7.0,"c":[[1.986594,41.266779],[1.986594,41.26681],[1.986603,41.26681],[1.9866,41.266934],[1.98664,41.266933],[1.98664,41.26699],[1.986467,41.26699],[1.986466,41.266779],[1.986594,41.266779]]},{"h":7.0,"c":[[1.985628,41.267226],[1.985625,41.26735],[1.985619,41.26735],[1.985621,41.267392],[1.985583,41.267392],[1.985584,41.26735],[1.985508,41.26735],[1.985507,41.267376],[1.985494,41.267376],[1.985494,41.267392],[1.985445,41.267392],[1.985446,41.267349],[1.985326,41.26735],[1.985326,41.267279],[1.985338,41.267279],[1.985338,41.267263],[1.985374,41.267263],[1.985374,41.267279],[1.985401,41.267278],[1.985403,41.267226],[1.985628,41.267226]]},{"h":7.0,"c":[[1.985627,41.267154],[1.985626,41.267119],[1.985657,41.267119],[1.985658,41.267085],[1.985802,41.267086],[1.985802,41.267132],[1.985751,41.267131],[1.985751,41.267153],[1.985627,41.267154]]},{"h":7.0,"c":[[1.985941,41.267132],[1.986083,41.267133],[1.986083,41.267162],[1.986079,41.267162],[1.986077,41.267208],[1.986068,41.267207],[1.986061,41.26721],[1.986054,41.267212],[1.986043,41.267212],[1.986036,41.267211],[1.986029,41.267206],[1.985941,41.267207],[1.985941,41.267132]]},{"h":7.0,"c":[[1.985925,41.267358],[1.985925,41.267312],[1.985947,41.267312],[1.985947,41.267302],[1.986051,41.267301],[1.986051,41.267288],[1.986123,41.267288],[1.986125,41.267378],[1.986051,41.267379],[1.986051,41.267359],[1.985925,41.267358]]},{"h":7.0,"c":[[1.987178,41.266426],[1.987289,41.266426],[1.987287,41.266519],[1.987188,41.266518],[1.987188,41.266486],[1.987177,41.266486],[1.987178,41.266426]]},{"h":7.0,"c":[[1.987203,41.26625],[1.987388,41.266252],[1.987389,41.266318],[1.987352,41.266316],[1.987351,41.266324],[1.987245,41.266323],[1.987244,41.266284],[1.987201,41.266286],[1.987203,41.26625]]},{"h":10.5,"c":[[1.987618,41.266255],[1.98772,41.266254],[1.987718,41.266315],[1.987728,41.266313],[1.987728,41.26636],[1.987617,41.266359],[1.987618,41.266255]]},{"h":10.5,"c":[[1.98763,41.266079],[1.987764,41.26608],[1.987764,41.266145],[1.987804,41.266145],[1.987804,41.266179],[1.987671,41.266179],[1.987671,41.266173],[1.987629,41.266173],[1.98763,41.266079]]},{"h":7.0,"c":[[1.986802,41.265843],[1.986933,41.265844],[1.986935,41.265935],[1.986801,41.265933],[1.986802,41.265843]]},{"h":7.0,"c":[[1.98665,41.265967],[1.98668,41.265968],[1.986681,41.266029],[1.986745,41.266029],[1.986744,41.266021],[1.986784,41.266021],[1.986785,41.266087],[1.986746,41.266088],[1.986746,41.266114],[1.986695,41.266115],[1.986695,41.266124],[1.986648,41.266124],[1.98665,41.265967]]},{"h":7.0,"c":[[1.984648,41.264906],[1.984647,41.264848],[1.984717,41.264848],[1.984717,41.264906],[1.984648,41.264906]]}];
+
+const BUILDINGS=BLD_RAW.map(b=>({h:b.h,coords:b.c.map(p=>({lng:p[0],lat:p[1]}))}));
+
+// ══════════════════════════════════════════════════
+// GEO + SOLAR UTILS
+// ══════════════════════════════════════════════════
+function latLngToM(dLat,dLng){
+  return{x:dLng*111320*Math.cos(LAT*Math.PI/180),y:dLat*110540};
+}
+function pip(px,py,poly){
+  let inside=false;
+  for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+    const xi=poly[i].x,yi=poly[i].y,xj=poly[j].x,yj=poly[j].y;
+    if(((yi>py)!==(yj>py))&&(px<(xj-xi)*(py-yi)/(yj-yi)+xi))inside=!inside;
+  }
+  return inside;
+}
+function isInShadow(lat,lng,pointH,altDeg,azDeg){
+  if(altDeg<=0)return true;
+  const sunAzRad=azDeg*Math.PI/180;
+  const sunAltRad=altDeg*Math.PI/180;
+  for(const bld of BUILDINGS){
+    const eff=bld.h-pointH;
+    if(eff<=0)continue;
+    const shadowLen=eff/Math.tan(sunAltRad);
+    const bldPts=bld.coords.map(c=>latLngToM(c.lat-lat,c.lng-lng));
+    const shPts=bldPts.map(pt=>({
+      x:pt.x+Math.sin(sunAzRad)*shadowLen,
+      y:pt.y-Math.cos(sunAzRad)*shadowLen
+    }));
+    const poly=[...bldPts,...shPts.reverse()];
+    if(pip(0,0,poly))return true;
+  }
+  return false;
+}
+function getAwningFactor(zoneId,hour){
+  const awning=document.getElementById('awningType').value;
+  if(awning==='none')return 1;
+  if(awning==='full')return 0.05;
+  if(awning==='shade50')return 0.50;
+  if(awning==='shade30')return 0.70;
+  if(awning==='pergola')return 0.55;
+  if(awning==='retract')return(hour>=10&&hour<=16)?0.05:1.0;
+  return 1;
+}
+function getSolarIntensity(date,lat,lng,h=1,zoneId=0){
+  const pos=SunCalc.getPosition(date,lat,lng);
+  const altDeg=pos.altitude*180/Math.PI;
+  if(altDeg<=0)return 0;
+  const azDeg=((pos.azimuth*180/Math.PI)+180+360)%360;
+  let intensity=Math.sin(pos.altitude);
+  if(isInShadow(lat,lng,h,altDeg,azDeg))intensity*=0.12;
+  intensity*=getAwningFactor(zoneId,date.getHours());
+  return Math.max(0,Math.min(1,intensity));
+}
+function iColor(v){
+  if(v<=.02)return'#0e1e0e';
+  if(v<=.12)return'#1a3a1a';
+  if(v<=.28)return'#2d5a2d';
+  if(v<=.44)return'#a85008';
+  if(v<=.58)return'#d97010';
+  if(v<=.72)return'#FF9500';
+  if(v<=.86)return'#FFB347';
+  return'#FFE066';
+}
+function getActiveZone(){
+  const z=parseInt(document.getElementById('activeZone').value);
+  return ZONES[z];
+}
+
+// ══════════════════════════════════════════════════
+// SATELLITE TOGGLE
+// ══════════════════════════════════════════════════
+function toggleSat(){
+  satEnabled=!satEnabled;
+  const btn=document.getElementById('satToggleBtn');
+  btn.textContent=satEnabled?'🛰 Satélite ON':'🗺 Satélite OFF';
+  btn.className=satEnabled?'btn act':'btn sec';
+  updateShadowMap();
+}
+
+// ══════════════════════════════════════════════════
+// VIEW MODE
+// ══════════════════════════════════════════════════
+function setViewMode(m){
+  viewMode=m;
+  document.getElementById('tabZones').className='vtab'+(m==='zones'?' active':'');
+  document.getElementById('tabPoints').className='vtab'+(m==='points'?' active':'');
+  document.getElementById('bottomGrid').style.display=m==='zones'?'grid':'none';
+  document.getElementById('pointPanel').style.display=m==='points'?'block':'none';
+  document.getElementById('legendEl').style.display=m==='zones'?'flex':'none';
+  document.getElementById('pointLegendEl').style.display=m==='points'?'flex':'none';
+  document.getElementById('mapTitle').textContent=m==='zones'?
+    'Mapa de Sombras · Vista Cenital · Zonas de Terraza':
+    'Mapa de Sombras · Modo Mesas — Haz clic para colocar mesas';
+  const cv=document.getElementById('shCanvas');
+  cv.style.cursor=m==='points'?'crosshair':'default';
+  updateShadowMap();
+}
+
+// ══════════════════════════════════════════════════
+// SHADOW MAP
+// ══════════════════════════════════════════════════
+// Map centering: center on terraza
+const MAP_LAT=41.265719, MAP_LNG=1.985259;
+
+// === SATELLITE TILES ===
+const TILE_ZOOM=19;
+const tileCache={};
+let satEnabled=true;
+
+function latLngToTileXY(lat,lng,zoom){
+  const n=Math.pow(2,zoom);
+  const x=Math.floor((lng+180)/360*n);
+  const lr=lat*Math.PI/180;
+  const y=Math.floor((1-Math.log(Math.tan(lr)+1/Math.cos(lr))/Math.PI)/2*n);
+  return{x,y};
+}
+function tileNWLatLng(tx,ty,zoom){
+  const n=Math.pow(2,zoom);
+  const lng=tx/n*360-180;
+  const lat=Math.atan(Math.sinh(Math.PI*(1-2*ty/n)))*180/Math.PI;
+  return{lat,lng};
+}
+function loadTile(tx,ty,zoom){
+  const key=`${zoom}/${tx}/${ty}`;
+  if(tileCache[key])return Promise.resolve(tileCache[key]);
+  return new Promise(res=>{
+    const img=new Image();img.crossOrigin='anonymous';
+    img.onload=()=>{tileCache[key]=img;res(img);};
+    img.onerror=()=>res(null);
+    img.src=`https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${ty}/${tx}`;
+  });
+}
+function paintCachedTiles(ctx,W,Hc,SCALE,cx,cy){
+  const mL=(0-cx)/SCALE,mR=(W-cx)/SCALE,mT=(cy)/SCALE,mB=(cy-Hc)/SCALE;
+  const dLng=1/(111320*Math.cos(MAP_LAT*Math.PI/180));
+  const lngL=MAP_LNG+mL*dLng,lngR=MAP_LNG+mR*dLng;
+  const latTop=MAP_LAT+mT/110540,latBot=MAP_LAT+mB/110540;
+  const t0=latLngToTileXY(latTop,lngL,TILE_ZOOM);
+  const t1=latLngToTileXY(latBot,lngR,TILE_ZOOM);
+  for(let ty2=t0.y-1;ty2<=t1.y+1;ty2++){
+    for(let tx2=t0.x-1;tx2<=t1.x+1;tx2++){
+      const img=tileCache[`${TILE_ZOOM}/${tx2}/${ty2}`];if(!img)continue;
+      const nw=tileNWLatLng(tx2,ty2,TILE_ZOOM),se=tileNWLatLng(tx2+1,ty2+1,TILE_ZOOM);
+      const mnw=latLngToM(nw.lat-MAP_LAT,nw.lng-MAP_LNG);
+      const mse=latLngToM(se.lat-MAP_LAT,se.lng-MAP_LNG);
+      ctx.drawImage(img,cx+mnw.x*SCALE,cy-mnw.y*SCALE,(mse.x-mnw.x)*SCALE,(mnw.y-mse.y)*SCALE);
+    }
+  }
+}
+function fetchTiles(W,Hc,SCALE,cx,cy){
+  const mL=(0-cx)/SCALE,mR=(W-cx)/SCALE,mT=(cy)/SCALE,mB=(cy-Hc)/SCALE;
+  const dLng=1/(111320*Math.cos(MAP_LAT*Math.PI/180));
+  const lngL=MAP_LNG+mL*dLng,lngR=MAP_LNG+mR*dLng;
+  const latTop=MAP_LAT+mT/110540,latBot=MAP_LAT+mB/110540;
+  const t0=latLngToTileXY(latTop,lngL,TILE_ZOOM);
+  const t1=latLngToTileXY(latBot,lngR,TILE_ZOOM);
+  const jobs=[];
+  for(let ty2=t0.y-1;ty2<=t1.y+1;ty2++)
+    for(let tx2=t0.x-1;tx2<=t1.x+1;tx2++)
+      jobs.push(loadTile(tx2,ty2,TILE_ZOOM));
+  return Promise.all(jobs);
+}
+
+// === MAIN DRAW SCENE ===
+function drawScene(ctx,W,Hc,SCALE,cx,cy,date,altDeg,azDeg,pos){
+  function mC(mx,my){return{x:cx+mx*SCALE,y:cy-my*SCALE};}
+  function llM(lat,lng){return latLngToM(lat-MAP_LAT,lng-MAP_LNG);}
+
+  // Grid
+  ctx.strokeStyle='rgba(255,255,255,.04)';ctx.lineWidth=1;
+  for(let i=0;i<=16;i++){ctx.beginPath();ctx.moveTo((W/16)*i,0);ctx.lineTo((W/16)*i,Hc);ctx.stroke();}
+  for(let i=0;i<=8;i++){ctx.beginPath();ctx.moveTo(0,(Hc/8)*i);ctx.lineTo(W,(Hc/8)*i);ctx.stroke();}
+
+  // Building shadows
+  if(altDeg>0.5){
+    BUILDINGS.forEach(bld=>{
+      const eff=bld.h-1;if(eff<=0)return;
+      const sl=eff/Math.tan(pos.altitude);
+      const bp=bld.coords.map(c=>latLngToM(c.lat-MAP_LAT,c.lng-MAP_LNG));
+      const sp=bp.map(p=>({x:p.x+Math.sin(pos.azimuth+Math.PI)*sl,y:p.y-Math.cos(pos.azimuth+Math.PI)*sl}));
+      const ap=[...bp,...sp.reverse()];if(!ap.length)return;
+      ctx.beginPath();const s0=mC(ap[0].x,ap[0].y);ctx.moveTo(s0.x,s0.y);
+      ap.slice(1).forEach(p=>{const c=mC(p.x,p.y);ctx.lineTo(c.x,c.y);});
+      ctx.closePath();ctx.fillStyle='rgba(0,0,0,.62)';ctx.fill();
+    });
+  }
+  // Buildings
+  BUILDINGS.forEach(bld=>{
+    const bp=bld.coords.map(c=>latLngToM(c.lat-MAP_LAT,c.lng-MAP_LNG));if(!bp.length)return;
+    ctx.beginPath();const s0=mC(bp[0].x,bp[0].y);ctx.moveTo(s0.x,s0.y);
+    bp.slice(1).forEach(p=>{const c=mC(p.x,p.y);ctx.lineTo(c.x,c.y);});
+    ctx.closePath();
+    ctx.fillStyle=satEnabled?'rgba(30,58,136,.38)':'#1e3a88';ctx.fill();
+    ctx.strokeStyle='rgba(80,140,255,.75)';ctx.lineWidth=1;ctx.stroke();
+    if(!satEnabled){
+      const bx=bp.reduce((s,p)=>s+p.x,0)/bp.length,by2=bp.reduce((s,p)=>s+p.y,0)/bp.length;
+      const cc=mC(bx,by2);
+      ctx.fillStyle='rgba(160,200,255,.6)';ctx.font='7px Space Mono';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(bld.h+'m',cc.x,cc.y);
+    }
+  });
+  // Terraza outline
+  {
+    const pts=TERR_POLY.map(c=>{const m=llM(c.lat,c.lng);return mC(m.x,m.y);});
+    ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));ctx.closePath();
+    ctx.fillStyle='rgba(255,255,255,.04)';ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=2.5;ctx.setLineDash([5,3]);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,255,255,.55)';ctx.font='bold 8px Space Mono';ctx.textAlign='center';ctx.textBaseline='top';
+    const tcy=cy-llM(41.265642,MAP_LNG).y*SCALE;ctx.fillText('TERRAZA PEZ BOMBA',W/2,tcy+2);
+  }
+  // Zones or points
+  if(viewMode==='zones'){
+    ZONES.slice(1).forEach((z,i)=>{
+      const poly=ZONE_POLYS[i];if(!poly)return;
+      const pts=poly.map(c=>{const m=llM(c.lat,c.lng);return mC(m.x,m.y);});
+      const sh=altDeg>0.5?isInShadow(z.lat,z.lng,1,altDeg,azDeg):(altDeg<=0);
+      const iv=altDeg>0?getSolarIntensity(date,z.lat,z.lng,1,z.id):0;
+      const isB=UNDER_BALCONY.includes(z.id);
+      ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));ctx.closePath();
+      ctx.fillStyle=iColor(iv)+(satEnabled?'40':'55');ctx.fill();
+      ctx.strokeStyle=sh?'#ff4444':iv>0.4?'#FFE066':'#4ade80';ctx.lineWidth=isB?1.5:2.2;
+      if(isB)ctx.setLineDash([3,2]);ctx.stroke();ctx.setLineDash([]);
+      const lx=pts.reduce((s,p)=>s+p.x,0)/pts.length,ly=pts.reduce((s,p)=>s+p.y,0)/pts.length;
+      ctx.fillStyle='rgba(0,0,0,.68)';if(ctx.roundRect)ctx.roundRect(lx-12,ly-9,24,17,3);else ctx.rect(lx-12,ly-9,24,17);ctx.fill();
+      ctx.fillStyle='#fff';ctx.font='bold 11px Syne,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(z.label,lx,ly);
+      if(isB){ctx.fillStyle='rgba(150,200,255,.8)';ctx.font='7px Space Mono';ctx.fillText('\u2302',lx,ly+11);}
+      if(altDeg>0){ctx.fillStyle=iv>0.4?'#FFE066':'rgba(200,230,255,.85)';ctx.font='bold 8px Space Mono';ctx.fillText((iv*100).toFixed(0)+'%',lx,ly-13);}
+    });
+  } else {
+    userPoints.forEach((pt,i)=>{
+      const m=llM(pt.lat,pt.lng);const cp=mC(m.x,m.y);
+      const sh=altDeg>0.5?isInShadow(pt.lat,pt.lng,1,altDeg,azDeg):(altDeg<=0);
+      const iv=altDeg>0?getSolarIntensity(date,pt.lat,pt.lng,1,0):0;
+      const isSel=(i===selectedPointIdx);
+      ctx.shadowColor='rgba(0,0,0,.7)';ctx.shadowBlur=8;
+      ctx.beginPath();ctx.arc(cp.x,cp.y,isSel?10:7,0,Math.PI*2);
+      ctx.fillStyle=sh?'rgba(255,68,68,.95)':iv>0.3?'rgba(255,180,0,.97)':'rgba(74,222,128,.93)';
+      ctx.fill();ctx.shadowBlur=0;
+      ctx.strokeStyle=isSel?'#fff':'rgba(255,255,255,.7)';ctx.lineWidth=isSel?2.5:1.5;ctx.stroke();
+      ctx.fillStyle='#000';ctx.font='bold 9px Space Mono';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(i+1,cp.x,cp.y);
+      if(isSel){ctx.fillStyle='rgba(255,255,255,.95)';ctx.font='9px Space Mono';ctx.textBaseline='bottom';ctx.fillText('Mesa '+(i+1),cp.x,cp.y-13);}
+    });
+  }
+  drawCompass(ctx,W-44,44,30,azDeg);
+  // Info pill
+  ctx.fillStyle='rgba(0,0,0,.65)';if(ctx.roundRect)ctx.roundRect(6,5,270,32,5);else ctx.rect(6,5,270,32);ctx.fill();
+  ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  if(altDeg>0){
+    ctx.fillStyle='rgba(255,255,255,.92)';ctx.font='bold 11px Space Mono';
+    ctx.fillText('Alt: '+altDeg.toFixed(1)+'\u00b0 \u00b7 Az: '+azDeg.toFixed(0)+'\u00b0N',12,21);
+    if(viewMode==='zones'){
+      let n=0;ZONES.slice(1).forEach(z=>{if(!isInShadow(z.lat,z.lng,1,altDeg,azDeg))n++;});
+      ctx.fillStyle=n>3?'#FFE066':n>0?'#4ade80':'#ff6b6b';ctx.fillText(n+'/6 zonas con sol',12,33);
+    } else {
+      let n=userPoints.filter(p=>!isInShadow(p.lat,p.lng,1,altDeg,azDeg)).length;
+      ctx.fillStyle=n>0?'#FFE066':'#ff6b6b';ctx.fillText(n+'/'+userPoints.length+' mesas con sol',12,33);
+    }
+  } else {
+    ctx.fillStyle='#4488cc';ctx.font='bold 11px Space Mono';ctx.fillText('\ud83c\udf19 Noche',12,21);
+  }
+  const sw=20*SCALE;
+  ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(W/2-sw/2-6,Hc-27,sw+12,20);
+  ctx.fillStyle='rgba(255,255,255,.85)';ctx.font='9px Space Mono';ctx.textAlign='center';
+  ctx.fillText('\u2190 20m \u2192',W/2,Hc-12);
+  ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(W/2-sw/2,Hc-19);ctx.lineTo(W/2+sw/2,Hc-19);ctx.stroke();
+  if(satEnabled){
+    ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillRect(W-238,Hc-16,238,16);
+    ctx.fillStyle='rgba(255,255,255,.6)';ctx.font='8px Space Mono';ctx.textAlign='right';
+    ctx.fillText('\u00a9 Esri, Maxar, Earthstar Geographics',W-3,Hc-4);
+  }
+  if(viewMode==='zones'){
+    const zone=getActiveZone();const sh=altDeg>0.5?isInShadow(zone.lat,zone.lng,1,altDeg,azDeg):true;
+    document.getElementById('shadowInfoEl').textContent=
+      zone.label+': '+(sh?'\ud83c\udf25 Sombra':'\u2600 Sol ('+(getSolarIntensity(date,zone.lat,zone.lng,1,zone.id)*100).toFixed(0)+'%)');
+  }
+}
+
+function updateShadowMap(){
+  const hv=parseFloat(document.getElementById('hourSlider').value);
+  const H=Math.floor(hv),M=(hv%1)*60;
+  document.getElementById('timeDisplay').textContent=H.toString().padStart(2,'0')+':'+M.toString().padStart(2,'0');
+  const ds=document.getElementById('dateInput').value;if(!ds)return;
+  const date=new Date(ds+'T12:00:00');date.setHours(H,M,0);
+  const cv=document.getElementById('shCanvas');const ctx=cv.getContext('2d');
+  const W=cv.width,Hc=cv.height,SCALE=8.5,cx=W/2,cy=Hc/2;
+  const pos=SunCalc.getPosition(date,MAP_LAT,MAP_LNG);
+  const altDeg=pos.altitude*180/Math.PI;
+  const azDeg=((pos.azimuth*180/Math.PI)+180+360)%360;
+
+  function render(){
+    ctx.clearRect(0,0,W,Hc);
+    ctx.fillStyle=satEnabled?'#111a28':(altDeg>0?'#182818':'#0a0f1a');
+    ctx.fillRect(0,0,W,Hc);
+    if(satEnabled)paintCachedTiles(ctx,W,Hc,SCALE,cx,cy);
+    drawScene(ctx,W,Hc,SCALE,cx,cy,date,altDeg,azDeg,pos);
+  }
+
+  render();
+  if(satEnabled){
+    fetchTiles(W,Hc,SCALE,cx,cy).then(()=>render());
+  }
+}
+
+}
+
+function drawCompass(ctx,x,y,r,sunAz){
+  ctx.save();ctx.translate(x,y);
+  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);
+  ctx.fillStyle='rgba(20,34,51,.85)';ctx.fill();
+  ctx.strokeStyle='rgba(255,107,0,.35)';ctx.lineWidth=1;ctx.stroke();
+  [{l:'N',a:0},{l:'E',a:90},{l:'S',a:180},{l:'O',a:270}].forEach(d=>{
+    const rad=(d.a-90)*Math.PI/180;
+    ctx.fillStyle=d.l==='N'?'#ff5555':'rgba(180,200,220,.8)';
+    ctx.font='8px Space Mono';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(d.l,Math.cos(rad)*(r-9),Math.sin(rad)*(r-9));
+  });
+  const sr=(sunAz-90)*Math.PI/180;
+  ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(sr)*(r-4),Math.sin(sr)*(r-4));
+  ctx.strokeStyle='#FFB347';ctx.lineWidth=2;ctx.stroke();
+  ctx.beginPath();ctx.arc(Math.cos(sr)*(r-4),Math.sin(sr)*(r-4),2.5,0,Math.PI*2);
+  ctx.fillStyle='#FFB347';ctx.fill();
+  ctx.restore();
+}
+
+// ══════════════════════════════════════════════════
+// CANVAS CLICK — place points
+// ══════════════════════════════════════════════════
+document.getElementById('shCanvas').addEventListener('click',function(e){
+  if(viewMode!=='points')return;
+  const cv=this;
+  const rect=cv.getBoundingClientRect();
+  const scaleX=cv.width/rect.width;
+  const scaleY=cv.height/rect.height;
+  const px=(e.clientX-rect.left)*scaleX;
+  const py=(e.clientY-rect.top)*scaleY;
+
+  // Convert back to lat/lng
+  const SCALE=8.5;
+  const cx=cv.width/2, cy=cv.height/2;
+  const mx=(px-cx)/SCALE;
+  const my=(cy-py)/SCALE;
+  // latLngToM inverse
+  const dLng=mx/(111320*Math.cos(LAT*Math.PI/180));
+  const dLat=my/110540;
+  const lat=MAP_LAT+dLat;
+  const lng=MAP_LNG+dLng;
+
+  // Check if inside terraza polygon (loose check)
+  const tBounds={minLat:41.265640,maxLat:41.265795,minLng:1.985183,maxLng:1.985340};
+  if(lat<tBounds.minLat||lat>tBounds.maxLat||lng<tBounds.minLng||lng>tBounds.maxLng){
+    // show hint
+    document.getElementById('shadowInfoEl').textContent='⚠ Coloca la mesa dentro de la terraza';
+    return;
+  }
+
+  const ptIdx=userPoints.length+1;
+  userPoints.push({lat,lng,label:`Mesa ${ptIdx}`});
+  selectedPointIdx=userPoints.length-1;
+  renderPointList();
+  updateShadowMap();
+  showPointChart(selectedPointIdx);
+});
+
+function renderPointList(){
+  const list=document.getElementById('pointList');
+  list.innerHTML='';
+  if(userPoints.length===0){
+    list.innerHTML='<span style="font-size:.68rem;color:var(--mu);padding:.3rem">Sin mesas colocadas</span>';
+    return;
+  }
+  userPoints.forEach((pt,i)=>{
+    const tag=document.createElement('div');
+    tag.className='point-tag'+(i===selectedPointIdx?' selected':'');
+    tag.innerHTML=`<span onclick="selectPoint(${i})" style="cursor:pointer">📍 ${pt.label}</span>
+      <button class="pt-btn" onclick="analyzePoint(${i})" title="Ver análisis solar">☀</button>
+      <button class="pt-btn" onclick="removePoint(${i})" title="Eliminar">✕</button>`;
+    list.appendChild(tag);
+  });
+}
+
+function selectPoint(i){
+  selectedPointIdx=i;
+  renderPointList();
+  updateShadowMap();
+  showPointChart(i);
+}
+
+function removePoint(i){
+  userPoints.splice(i,1);
+  if(selectedPointIdx>=userPoints.length)selectedPointIdx=userPoints.length-1;
+  renderPointList();
+  updateShadowMap();
+  if(userPoints.length===0)closePointChart();
+  else if(selectedPointIdx>=0)showPointChart(selectedPointIdx);
+}
+
+function analyzePoint(i){
+  selectPoint(i);
+  showPointChart(i);
+}
+
+function clearPoints(){
+  userPoints=[];selectedPointIdx=-1;
+  renderPointList();updateShadowMap();closePointChart();
+}
+
+function closePointChart(){
+  document.getElementById('pointChartCard').style.display='none';
+}
+
+function showPointChart(i){
+  const pt=userPoints[i];
+  if(!pt)return;
+  const ds=document.getElementById('dateInput').value;
+  if(!ds)return;
+  const date=new Date(ds+'T12:00:00');
+
+  document.getElementById('pointChartCard').style.display='block';
+  document.getElementById('pointChartTitle').textContent=`☀ Análisis solar · ${pt.label} · ${date.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'})}`;
+
+  const cv=document.getElementById('pointChartCanvas');
+  const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0a1520');g.addColorStop(1,'#142233');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+
+  const padL=42,padR=15,padT=18,padB=35;
+  const chartW=W-padL-padR,chartH=H-padT-padB;
+  const hours=[];
+  const vals=[];
+  let sunHours=0,peakH=0,peakV=0;
+
+  for(let h=6;h<=21;h++){
+    const d=new Date(date);d.setHours(h,30,0);
+    const iv=getSolarIntensity(d,pt.lat,pt.lng,1,0);
+    hours.push(h);vals.push(iv);
+    if(iv>0.1)sunHours++;
+    if(iv>peakV){peakV=iv;peakH=h;}
+  }
+
+  // Grid
+  for(let i=0;i<=4;i++){
+    const y=padT+(1-i/4)*chartH;
+    ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(W-padR,y);ctx.stroke();
+    ctx.fillStyle='rgba(107,140,174,.65)';ctx.font='9px Space Mono';ctx.textAlign='right';ctx.textBaseline='middle';
+    ctx.fillText((i*25)+'%',padL-4,y);
+  }
+
+  // Bars
+  const bw=(chartW/hours.length)*0.75;
+  hours.forEach((h,i)=>{
+    const iv=vals[i];
+    const barH=iv*chartH;
+    const x=padL+(i/hours.length)*chartW+(chartW/hours.length)*0.125;
+    const y=padT+chartH-barH;
+    const bg=ctx.createLinearGradient(0,y,0,padT+chartH);
+    bg.addColorStop(0,iColor(iv));
+    bg.addColorStop(1,iColor(iv)+'44');
+    ctx.fillStyle=bg;
+    ctx.beginPath();
+    if(ctx.roundRect)ctx.roundRect(x,y,bw,barH,2);
+    else ctx.rect(x,y,bw,barH);
+    ctx.fill();
+    // Hour label
+    ctx.fillStyle='rgba(107,140,174,.8)';ctx.font='8px Space Mono';ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText(h+'h',x+bw/2,padT+chartH+4);
+    // Value
+    if(barH>14&&iv>0.05){
+      ctx.fillStyle='rgba(255,255,255,.8)';ctx.font='7px Space Mono';ctx.textBaseline='bottom';
+      ctx.fillText((iv*100).toFixed(0),x+bw/2,y-1);
+    }
+  });
+
+  // Infobar below
+  document.getElementById('pointChartInfo').innerHTML=
+    `<span style="color:var(--or2);font-weight:700">${sunHours}h de sol directo</span> · ` +
+    `Hora pico: <span style="color:#FFE066">${peakH}:00h (${(peakV*100).toFixed(0)}%)</span> · ` +
+    `Lat: ${pt.lat.toFixed(6)} · Lng: ${pt.lng.toFixed(6)}`;
+}
+
+// ══════════════════════════════════════════════════
+// HEATMAPS
+// ══════════════════════════════════════════════════
+function mkHG(cols){
+  const hg=document.getElementById('heatmap');
+  hg.innerHTML='';hg.style.gridTemplateColumns=cols;return hg;
+}
+function addCell(parent,cls,text,style){
+  const el=document.createElement('div');el.className=cls;
+  if(text!==undefined)el.textContent=text;
+  if(style)Object.assign(el.style,style);
+  parent.appendChild(el);return el;
+}
+function renderDayHeatmap(date,zone){
+  const g=mkHG('46px repeat(24,1fr)');
+  addCell(g,'hl','');
+  for(let h=0;h<24;h++)addCell(g,'hhl',h%3===0?h+'h':'');
+  addCell(g,'hl',date.toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'short'}),{fontSize:'.55rem'});
+  for(let h=0;h<24;h++){
+    const d=new Date(date);d.setHours(h,30,0);
+    const iv=getSolarIntensity(d,zone.lat,zone.lng,1,zone.id);
+    const c=addCell(g,'hc','',{background:iColor(iv)});
+    c.title=`${h}:30 · ${(iv*100).toFixed(0)}%`;
+  }
+}
+function renderWeekHeatmap(date,zone){
+  const g=mkHG('52px repeat(24,1fr)');
+  const mon=new Date(date);mon.setDate(date.getDate()-((date.getDay()+6)%7));
+  addCell(g,'hl','');
+  for(let h=0;h<24;h++)addCell(g,'hhl',h%3===0?h+'h':'');
+  for(let d=0;d<7;d++){
+    const day=new Date(mon);day.setDate(mon.getDate()+d);
+    addCell(g,'hl',day.toLocaleDateString('es-ES',{weekday:'short',day:'numeric'}),{fontSize:'.52rem'});
+    for(let h=0;h<24;h++){
+      const dt=new Date(day);dt.setHours(h,30,0);
+      const iv=getSolarIntensity(dt,zone.lat,zone.lng,1,zone.id);
+      const c=addCell(g,'hc','',{background:iColor(iv)});
+      c.title=`${day.toLocaleDateString('es-ES',{weekday:'short'})} ${h}:30 · ${(iv*100).toFixed(0)}%`;
+    }
+  }
+}
+function renderMonthHeatmap(date,zone){
+  const g=mkHG('52px repeat(24,1fr)');
+  const y=date.getFullYear(),m=date.getMonth();
+  const days=new Date(y,m+1,0).getDate();
+  addCell(g,'hl','');
+  for(let h=0;h<24;h++)addCell(g,'hhl',h%3===0?h+'h':'');
+  for(let d=1;d<=days;d++){
+    const day=new Date(y,m,d);
+    addCell(g,'hl',d%5===1?d.toString():'',{fontSize:'.55rem'});
+    for(let h=0;h<24;h++){
+      const dt=new Date(day);dt.setHours(h,30,0);
+      const iv=getSolarIntensity(dt,zone.lat,zone.lng,1,zone.id);
+      const c=addCell(g,'hc','',{background:iColor(iv)});
+      c.title=`${d}/${m+1} ${h}:30 · ${(iv*100).toFixed(0)}%`;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════
+// ARC SOLAR
+// ══════════════════════════════════════════════════
+function renderArc(date,zone){
+  const cv=document.getElementById('arcCanvas');
+  const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0a1520');g.addColorStop(1,'#142233');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  const baseY=H-26;
+  ctx.strokeStyle='rgba(255,107,0,.07)';ctx.lineWidth=1;
+  for(let i=1;i<6;i++){
+    const y=baseY-(i/6)*(H-33)*0.95;
+    ctx.beginPath();ctx.moveTo(36,y);ctx.lineTo(W-8,y);ctx.stroke();
+    ctx.fillStyle='rgba(107,140,174,.65)';ctx.font='8px Space Mono';ctx.textAlign='right';
+    ctx.fillText((i*15)+'°',2,y+3);
+  }
+  ctx.strokeStyle='rgba(255,107,0,.25)';ctx.lineWidth=1.2;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(36,baseY);ctx.lineTo(W-8,baseY);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(107,140,174,.65)';ctx.font='8px Space Mono';ctx.textAlign='center';
+  for(let h=6;h<=21;h+=3){
+    const x=36+((h-6)/16)*(W-44);ctx.fillText(h+'h',x,H-3);
+  }
+  ctx.textAlign='left';
+  const pts=[];
+  for(let m=0;m<=24*60;m+=8){
+    const d=new Date(date);d.setHours(0,m,0);
+    const p=SunCalc.getPosition(d,zone.lat,zone.lng);
+    const a=p.altitude*180/Math.PI;if(a<0)continue;
+    const az=((p.azimuth*180/Math.PI)+180+360)%360;
+    const hf=(m/60-6)/16;
+    const x=36+hf*(W-44);const y=baseY-(a/90)*(H-38)*0.92;
+    const sh=isInShadow(zone.lat,zone.lng,1,a,az);
+    pts.push({x,y,sh});
+  }
+  if(pts.length>1){
+    ctx.beginPath();ctx.moveTo(pts[0].x,baseY);
+    pts.forEach(p=>ctx.lineTo(p.x,p.y));ctx.lineTo(pts[pts.length-1].x,baseY);ctx.closePath();
+    const fg=ctx.createLinearGradient(0,0,0,baseY);
+    fg.addColorStop(0,'rgba(255,107,0,.12)');fg.addColorStop(1,'rgba(255,107,0,0)');
+    ctx.fillStyle=fg;ctx.fill();
+    for(let i=1;i<pts.length;i++){
+      ctx.beginPath();ctx.moveTo(pts[i-1].x,pts[i-1].y);ctx.lineTo(pts[i].x,pts[i].y);
+      ctx.strokeStyle=pts[i].sh?'#2d5a2d':'#FF9500';ctx.lineWidth=2;ctx.stroke();
+    }
+  }
+  const now=new Date();
+  if(date.toDateString()===now.toDateString()){
+    const p=SunCalc.getPosition(now,zone.lat,zone.lng);
+    const a=p.altitude*180/Math.PI;
+    if(a>0){
+      const hf=(now.getHours()+now.getMinutes()/60-6)/16;
+      const x=36+hf*(W-44);const y=baseY-(a/90)*(H-38)*0.92;
+      ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);
+      ctx.fillStyle='#FFE066';ctx.fill();ctx.strokeStyle='#FF6B00';ctx.lineWidth=2;ctx.stroke();
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════
+// STATS + HOUR LIST
+// ══════════════════════════════════════════════════
+function renderStats(date,zone){
+  const times=SunCalc.getTimes(date,zone.lat,zone.lng);
+  let sunH=0,maxA=0;
+  for(let h=0;h<24;h++){
+    const d=new Date(date);d.setHours(h,30,0);
+    const iv=getSolarIntensity(d,zone.lat,zone.lng,1,zone.id);
+    if(iv>0.1)sunH++;
+    const pos=SunCalc.getPosition(d,zone.lat,zone.lng);
+    maxA=Math.max(maxA,pos.altitude*180/Math.PI);
+  }
+  const fmt=t=>t.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('s1').textContent=sunH+'h';
+  document.getElementById('s2').textContent=maxA.toFixed(1)+'°';
+  document.getElementById('s3').textContent=fmt(times.sunrise).replace(':00','')+' · '+fmt(times.sunset).replace(':00','');
+  document.getElementById('statsDate').textContent=zone.label+' · '+date.toLocaleDateString('es-ES',{day:'numeric',month:'long'});
+}
+function renderHourList(date,zone){
+  const list=document.getElementById('hourList');list.innerHTML='';
+  for(let h=7;h<=20;h++){
+    const d=new Date(date);d.setHours(h,0,0);
+    const pos=SunCalc.getPosition(d,zone.lat,zone.lng);
+    const a=pos.altitude*180/Math.PI;
+    const az=((pos.azimuth*180/Math.PI)+180+360)%360;
+    const iv=getSolarIntensity(d,zone.lat,zone.lng,1,zone.id);
+    const icon=a>0?(iv>0.2?'☀️':'🌥️'):'🌙';
+    const row=document.createElement('div');row.className='hr';
+    row.innerHTML=`<span class="ht">${icon} ${h}:00</span>
+      <div class="hbw"><div class="hb" style="width:${(iv*100).toFixed(0)}%;background:${iColor(iv)}"></div></div>
+      <span class="ha">${a>0?a.toFixed(1)+'°':'—'}</span>
+      <span class="haz">${a>0?az.toFixed(0)+'°N':'—'}</span>`;
+    list.appendChild(row);
+  }
+}
+
+// ══════════════════════════════════════════════════
+// ZONE COMPARISON
+// ══════════════════════════════════════════════════
+function runZoneComparison(){
+  const ds=document.getElementById('dateInput').value;if(!ds)return;
+  const date=new Date(ds+'T12:00:00');
+  document.getElementById('zcDate').textContent=date.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'});
+  const tbody=document.getElementById('zoneTbody');tbody.innerHTML='';
+  const hours=Array.from({length:14},(_,i)=>i+7);
+  ZONES.slice(1).forEach(z=>{
+    const row=document.createElement('tr');
+    let totalSun=0;
+    let cells=`<td>${z.label} <span style="color:var(--mu);font-weight:400;font-size:.62rem">${z.desc||''}</span>${UNDER_BALCONY.includes(z.id)?' ⌂':''}</td>`;
+    hours.forEach(h=>{
+      const d=new Date(date);d.setHours(h,0,0);
+      const iv=getSolarIntensity(d,z.lat,z.lng,1,z.id);
+      const pct=(iv*100).toFixed(0);
+      const fg=iv>0.5?'#000':'#fff';
+      cells+=`<td style="background:${iColor(iv)};color:${fg}">${pct}%</td>`;
+      if(iv>0.1)totalSun++;
+    });
+    cells+=`<td style="font-weight:700;color:${totalSun>=8?'#FFE066':totalSun>=5?'#FF9500':'#ff6b6b'}">${totalSun}h</td>`;
+    row.innerHTML=cells;tbody.appendChild(row);
+  });
+}
+
+// ══════════════════════════════════════════════════
+// MAIN RUN
+// ══════════════════════════════════════════════════
+function runAll(){
+  const ds=document.getElementById('dateInput').value;if(!ds)return;
+  const date=new Date(ds+'T12:00:00');
+  const mode=document.getElementById('viewMode').value;
+  const zone=getActiveZone();
+  document.getElementById('arcDate').textContent=
+    date.toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('heatSubtitle').textContent=
+    `${zone.label} · ${mode==='day'?'día':mode==='week'?'semana':'mes'}`;
+  if(mode==='day')renderDayHeatmap(date,zone);
+  else if(mode==='week')renderWeekHeatmap(date,zone);
+  else renderMonthHeatmap(date,zone);
+  renderArc(date,zone);
+  renderStats(date,zone);
+  renderHourList(date,zone);
+  runZoneComparison();
+  updateShadowMap();
+  document.getElementById('statusBar').textContent=
+    `Analizado: ${zone.label} · ${date.toLocaleDateString('es-ES')} · ${new Date().toLocaleTimeString('es-ES')}`;
+}
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('dateInput').value=new Date().toISOString().split('T')[0];
+  document.getElementById('hourSlider').addEventListener('input',updateShadowMap);
+  setViewMode('zones');
+  runAll();
+});
+</script>
+</body>
+</html>
